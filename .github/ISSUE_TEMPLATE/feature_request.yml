@@ -1,0 +1,20 @@
+name: Feature request
+description: Suggest an improvement or a new feature
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: job
+    attributes:
+      label: What are you trying to get done?
+      description: Describe the job in the kitchen, and what makes it hard today
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help?
+      description: How you imagine it working. Sketches and screenshots welcome.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: How do you handle it now?

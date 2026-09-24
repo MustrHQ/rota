@@ -1,0 +1,46 @@
+name: Bug report
+description: Something is not working as it should
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. **Security problems should be reported privately** — see SECURITY.md.
+  - type: input
+    id: version
+    attributes:
+      label: MustrHQ Rota version
+      description: The release you downloaded, e.g. 1.0.0
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: PHP and MySQL/MariaDB versions, and host
+      placeholder: "PHP 8.2, MariaDB 10.6, cPanel shared hosting"
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Sign in as a manager
+        2. Open Timesheets
+        3. ...
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device
+      multiple: true
+      options: [Desktop browser, Android phone/tablet, iPhone/iPad, Installed app (PWA), Wall-mounted kiosk tablet]
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or error messages

@@ -1,0 +1,20 @@
+# config.php is tracked as a blank template. Never commit a filled-in copy —
+# see CONTRIBUTING.md for `git update-index --skip-worktree config.php`.
+
+# Rollback backups from the in-admin updater (keep the folder's guards)
+backups/*
+!backups/.htaccess
+!backups/.gitkeep
+
+# Staff photos (keep the folder's guards)
+uploads/*
+!uploads/.htaccess
+!uploads/.gitkeep
+
+# Release zips, logs and OS/editor files
+*.zip
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

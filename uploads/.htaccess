@@ -1,0 +1,6 @@
+# This folder only holds uploaded staff photos.
+# Never let anything here be executed as a script.
+<FilesMatch "\.(php|php3|php4|php5|php7|phtml|pht|phar|cgi|pl|py|asp|aspx|sh)$">
+    Require all denied
+</FilesMatch>
+Options -ExecCGI -Indexes
