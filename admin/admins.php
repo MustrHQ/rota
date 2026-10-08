@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 /* ----------------------------- view -------------------------------- */
 $admins = db()->query('SELECT id, username, created_at FROM admins ORDER BY username')->fetchAll();
 
-admin_header('Admins', 'admins.php');
+admin_header('Admins', 'admins.php', 'Who can sign in to this admin area');
 flash_render();
 ?>
 
@@ -89,9 +89,9 @@ flash_render();
             $isMe = $id === $meId;
         ?>
             <tr>
-                <td><?= e($a['username']) ?><?php if ($isMe): ?> <span class="badge on">you</span><?php endif; ?></td>
-                <td class="mono"><?= e(fmt_date_local($a['created_at'])) ?></td>
-                <td>
+                <td data-label="Username"><?= e($a['username']) ?><?php if ($isMe): ?> <span class="badge on">you</span><?php endif; ?></td>
+                <td data-label="Added" class="mono"><?= e(fmt_date_local($a['created_at'])) ?></td>
+                <td data-label="Change password">
                     <form method="post" class="actions" style="gap:6px" autocomplete="off" onsubmit="return this.password.value === this.confirm.value || (alert('Passwords do not match.'), false);">
                         <?= csrf_field() ?>
                         <input type="hidden" name="action" value="passwd">
@@ -101,7 +101,7 @@ flash_render();
                         <button class="btn-link" type="submit">Save</button>
                     </form>
                 </td>
-                <td>
+                <td data-label="">
                     <?php if (!$isMe): ?>
                         <form class="inline-form" method="post" onsubmit="return confirm('Remove this admin?');">
                             <?= csrf_field() ?>

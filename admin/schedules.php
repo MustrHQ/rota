@@ -236,7 +236,7 @@ if ($staffId) {
     }
 }
 
-admin_header('Schedules', 'schedules.php');
+admin_header('Rota', 'schedules.php', 'Expected start times, and the weekly rota to share');
 flash_render();
 ?>
 
@@ -250,7 +250,7 @@ flash_render();
     <?php if (!$activeStaff): ?>
         <p class="muted">No active staff yet.</p>
     <?php else: ?>
-    <div style="overflow-x:auto">
+    <div class="rota-scroll">
     <div class="table-wrap"><table class="grid">
         <thead><tr><th>Staff</th><?php foreach ($DAYS as $d): ?><th><?= e(substr($d, 0, 3)) ?></th><?php endforeach; ?></tr></thead>
         <tbody>
@@ -296,10 +296,10 @@ flash_render();
                 $en  = $existing[$dow]['end'] ?? '';
             ?>
                 <tr>
-                    <td><?= e($label) ?></td>
-                    <td><input type="checkbox" name="sched[<?= $dow ?>]" value="1" <?= $has ? 'checked' : '' ?>></td>
-                    <td><input type="time" name="start[<?= $dow ?>]" value="<?= e($st) ?>" style="max-width:160px;margin:0"></td>
-                    <td><input type="time" name="end[<?= $dow ?>]" value="<?= e($en) ?>" style="max-width:160px;margin:0"></td>
+                    <td data-label="Day"><?= e($label) ?></td>
+                    <td data-label="Scheduled"><input type="checkbox" name="sched[<?= $dow ?>]" value="1" <?= $has ? 'checked' : '' ?>></td>
+                    <td data-label="Expected start"><input type="time" name="start[<?= $dow ?>]" value="<?= e($st) ?>" style="max-width:160px;margin:0"></td>
+                    <td data-label="Expected end (optional)"><input type="time" name="end[<?= $dow ?>]" value="<?= e($en) ?>" style="max-width:160px;margin:0"></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>

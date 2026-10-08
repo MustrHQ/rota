@@ -123,7 +123,7 @@ if (is_dir($bdir)) {
     rsort($backups);
 }
 
-admin_header('Update', 'update.php');
+admin_header('Updates', 'update.php', 'Upload a release and keep your data');
 flash_render();
 ?>
 

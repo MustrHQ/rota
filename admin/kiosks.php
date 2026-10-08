@@ -7,7 +7,7 @@ require_admin();
 try {
     db()->query('SELECT 1 FROM kiosk_codes LIMIT 1');
 } catch (Throwable $ex) {
-    admin_header('Kiosks', 'kiosks.php');
+    admin_header('Kiosks', 'kiosks.php', 'Pairing codes for your tablets');
     echo '<div class="flash warn">This feature needs a quick database update. <a href="upgrade.php">Run it now</a>, then come back.</div>';
     admin_footer();
     exit;
@@ -136,7 +136,7 @@ flash_render();
             $id = (int) $k['id'];
         ?>
             <tr style="<?= $k['is_active'] ? '' : 'opacity:.6' ?>">
-                <td>
+                <td data-label="Kiosk">
                     <form method="post" class="actions" style="gap:6px;align-items:flex-end">
                         <?= csrf_field() ?>
                         <input type="hidden" name="action" value="update">
@@ -152,7 +152,7 @@ flash_render();
                     </form>
                     <div class="hint">On the tablet: open the kiosk and enter this code, or visit <code>kiosk/index.php?code=<?= e($k['code']) ?></code></div>
                 </td>
-                <td>
+                <td data-label="Code">
                     <span class="mono" style="font-size:16px;letter-spacing:.08em"><?= e($k['code']) ?></span>
                     <form class="inline-form" method="post" onsubmit="return confirm('Generate a new code? The current one stops working.');">
                         <?= csrf_field() ?>
@@ -161,12 +161,12 @@ flash_render();
                         <button class="btn-link" type="submit">Regenerate</button>
                     </form>
                 </td>
-                <td>
+                <td data-label="Status">
                     <?= $k['is_active'] ? '<span class="badge on">active</span>' : '<span class="badge off">inactive</span>' ?>
                     <?php if ($k['brand_name']): ?><br><span class="tag"><?= e($k['brand_name']) ?></span><?php else: ?><br><span class="muted" style="font-size:12.5px">all brands</span><?php endif; ?>
                 </td>
-                <td class="mono"><?= $k['last_used_at'] ? e(fmt_dt_local($k['last_used_at'], 'j M, H:i')) : '<span class="muted">never</span>' ?></td>
-                <td>
+                <td data-label="Last used" class="mono"><?= $k['last_used_at'] ? e(fmt_dt_local($k['last_used_at'], 'j M, H:i')) : '<span class="muted">never</span>' ?></td>
+                <td data-label="">
                     <div class="actions">
                         <form class="inline-form" method="post">
                             <?= csrf_field() ?>

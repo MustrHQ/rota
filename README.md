@@ -13,6 +13,10 @@ Plain PHP + MySQL. No framework, no Composer, no build step — upload the files
 
 Part of the [MustrHQ](https://mustrhq.app) open-source set, alongside [MustrHQ Stock](https://github.com/MustrHQ/stock).
 
+<p align="center">
+  <img src="docs/screenshots/01-home.png" alt="MustrHQ Rota home: who is on shift, timecards that need fixing, and today's attendance" width="760">
+</p>
+
 **Quick start:** download the latest zip from [Releases](https://github.com/MustrHQ/rota/releases/latest), upload it to your hosting, open `install.php` and follow the steps. Full details under [Setup](#setup-cpanel).
 
 ---
@@ -20,7 +24,9 @@ Part of the [MustrHQ](https://mustrhq.app) open-source set, alongside [MustrHQ S
 ## What's built
 
 - **Kiosk** (`kiosk/`) — tap name → PIN → clock in/out. Live wall clock and a per-person elapsed timer. A tablet is paired to the kiosk with a **code** (see below). If the code is tied to a brand, that kiosk shows only the staff assigned to that brand and tags their clock-ins with it automatically; a general code shows everyone and asks people who work more than one brand. Failed-PIN lockout.
-- **Dashboard** — who's on shift right now (with live elapsed), hours logged today, and today's attendance vs. each person's schedule (on time / late / no-show).
+- **Home** — a welcome banner with a live clock, then tiles: *Manage timecards* (a **Must fix** count broken down into missed out-punches, unexcused absences and late-ins, plus **Clean timecards**, for today / this week / last week / this month), *On shift now*, *Today* (arrivals, late, no-shows, hours, labour cost so far) and *Quick links*.
+- **Exceptions** — every timecard problem for a period in one list, filterable by type, each with a one-click fix: set a missing clock-out, add a punch for an absence (pre-filled from the rota), or review a late arrival.
+- **Schedule planner** — a week timeline of staff against days: the rota as outlined bars, actual worked time as solid bars (green while on shift, red for a forgotten clock-out), no-shows shaded, a live "now" line, per-day coverage and planned-vs-worked hours. Filter by location; click any worked bar to open its timecard.
 - **Timesheets** — filter by staff and date range, edit any entry, add missed punches by hand (any date, including past days), delete.
 - **Import** — bulk-upload past clock in/out records from a CSV, with a preview and validation step before anything is written. Good for moving over from paper or a spreadsheet.
 - **Staff** — add/edit people, set 4-digit PIN, hourly rate, brands, roles, and an optional photo. People are deactivated (not deleted) so past hours stay intact.
@@ -29,6 +35,23 @@ Part of the [MustrHQ](https://mustrhq.app) open-source set, alongside [MustrHQ S
 - **Kiosks** — create and manage pairing codes for your tablets; optionally tie each to a brand.
 - **Admins** — add or remove admin accounts and change passwords (every admin has equal access).
 - **Reports** — hours and wage totals per staff and labour cost per brand for any date range, with CSV export.
+
+---
+
+## Screenshots
+
+| | |
+|---|---|
+| ![Kiosk on the wall tablet: staff tap their name, then a PIN](docs/screenshots/00-kiosk.png) | ![Home: on shift now, timecards that need fixing, today's attendance](docs/screenshots/01-home.png) |
+| **Kiosk** — tap your name, enter your PIN | **Home** — what needs attention today |
+| ![Exceptions: missed out-punches, absences and late arrivals with one-click fixes](docs/screenshots/02-exceptions.png) | ![Schedule planner: rota against actual worked time for the week](docs/screenshots/03-planner.png) |
+| **Exceptions** — every problem, one click to fix | **Schedule planner** — rota against what was worked |
+| ![Timesheets: every clock in and out, editable](docs/screenshots/04-timesheets.png) | ![Weekly rota grid with CSV, PDF and JPG export](docs/screenshots/05-rota.png) |
+| **Timesheets** | **Rota** |
+| ![Staff list with PIN look-up, brands, roles and pay rates](docs/screenshots/06-staff.png) | ![Reports: hours, wages and labour cost per brand](docs/screenshots/08-reports.png) |
+| **Staff** — PINs, brands, roles, rates | **Reports** — hours, wages, labour cost |
+
+All names, brands and figures are made-up demo data.
 
 ---
 
@@ -139,6 +162,10 @@ One thing worth knowing: the **rota is a recurring weekly pattern**, not dated r
 - **Accidental / rushed taps.** If the same person taps again within `CLOCK_COOLDOWN_SECONDS` (default 30) of clocking in or out, the repeat is politely ignored so a just-started shift isn't instantly closed (or a just-ended one reopened) in a rush. It's per-person, so it never blocks the next member of staff.
 - **Clocking in doesn't need a schedule.** Anyone active can clock in and their hours count; schedules only drive the late/no-show flags. People who work without a schedule show as *Worked (no schedule)* on the dashboard.
 - **Tunable settings** live in `config.php`: `GRACE_MINUTES` and `NOSHOW_AFTER_MINUTES` (lateness/no-show grace), `OPEN_SHIFT_ALERT_HOURS`, `CLOCK_COOLDOWN_SECONDS`, and the PIN lockout (`PIN_MAX_ATTEMPTS`, `PIN_LOCK_SECONDS`). File updates never overwrite `config.php`, so your values are safe.
+- **Looking up a PIN.** Staff → the **PIN** column shows `••••` with a **Show** button, and each person has **Reset PIN**, which sets a new random 4-digit PIN and displays it once. Use Reset when someone forgets theirs; it also clears any lockout.
+- **How PINs are stored.** The PIN is hashed for checking at the kiosk, plus a second copy encrypted with `APP_KEY` from `config.php` so admins can read it back. The key lives outside the database, so a stolen database alone doesn't expose PINs — but anyone who has both your database and `config.php` can. If that trade-off isn't worth it to you, leave `pin_enc` empty and rely on **Reset PIN** alone; everything still works and the column simply shows "reset to see".
+  Set `APP_KEY` to a long random string, and don't change it afterwards or stored PINs can't be read back (resetting a PIN fixes any that can't).
+- **Existing installs:** run **Database update** once (`admin/upgrade.php`) to add the new column. PINs set before that show as "reset to see" until the person's PIN is next set or reset.
 - **PINs** are 4 digits and stored hashed. Because the number space is small, the kiosk locks a person out for a short time after several wrong tries. For a wall-mounted tablet with physical supervision this is a reasonable balance; treat PINs as convenience, not high security.
 - **Deleting a brand** leaves past entries intact but drops the brand label on them. **Deleting a role** removes it from anyone who had it. Deactivating instead keeps everything and just hides it from the kiosk.
 
@@ -149,6 +176,7 @@ install.php         web installer (run once, then delete)
 config.php          settings + DB credentials
 db.php              PDO connection
 helpers.php         sessions, CSRF, time conversion, admin layout
+insights.php        exception engine shared by home, exceptions and planner
 schema.sql          database tables + starter data
 assets/
   style.css         kiosk + admin styles (responsive)
@@ -167,7 +195,9 @@ admin/
   upgrade.php       apply database updates (create new tables) — safe to re-run
   update.php        upload a zip and update the app in place (with backup)
   login.php  logout.php
-  index.php         dashboard
+  index.php         home: welcome banner + timecard / on-shift / today tiles
+  exceptions.php    timecard exceptions with one-click fixes
+  planner.php       schedule planner (rota vs actual timeline)
   staff.php         staff + PIN + rate + brands + roles + photo
   timesheets.php    view / edit / add / delete entries (any date)
   import.php        bulk import past timecards from CSV

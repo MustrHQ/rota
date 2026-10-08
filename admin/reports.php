@@ -90,7 +90,7 @@ if (($_GET['export'] ?? '') === 'csv') {
 
 $qs = 'from=' . urlencode($from) . '&to=' . urlencode($to);
 
-admin_header('Reports', 'reports.php');
+admin_header('Reports', 'reports.php', 'Hours and wage totals for any date range');
 flash_render();
 ?>
 
@@ -116,20 +116,20 @@ flash_render();
         <?php endif; ?>
         <?php foreach ($perStaff as $row): ?>
             <tr>
-                <td><?= e($row['name']) ?></td>
-                <td class="num"><?= (int) $row['shifts'] ?></td>
-                <td class="num"><?= e(fmt_duration($row['secs'])) ?> <span class="muted">(<?= number_format($row['hours'], 2) ?>)</span></td>
-                <td class="num"><?= e(money($row['rate'])) ?></td>
-                <td class="num"><?= e(money($row['wage'])) ?></td>
+                <td data-label="Staff"><?= e($row['name']) ?></td>
+                <td data-label="Shifts" class="num"><?= (int) $row['shifts'] ?></td>
+                <td data-label="Hours" class="num"><?= e(fmt_duration($row['secs'])) ?> <span class="muted">(<?= number_format($row['hours'], 2) ?>)</span></td>
+                <td data-label="Rate" class="num"><?= e(money($row['rate'])) ?></td>
+                <td data-label="Wages" class="num"><?= e(money($row['wage'])) ?></td>
             </tr>
         <?php endforeach; ?>
         <?php if ($perStaff): ?>
             <tr class="total">
-                <td>Total</td>
-                <td class="num"></td>
-                <td class="num"><?= e(fmt_duration($grandSecs)) ?> <span class="muted">(<?= number_format(hours_decimal($grandSecs), 2) ?>)</span></td>
-                <td class="num"></td>
-                <td class="num"><?= e(money($grandWage)) ?></td>
+                <td data-label="Staff">Total</td>
+                <td data-label="Shifts" class="num"></td>
+                <td data-label="Hours" class="num"><?= e(fmt_duration($grandSecs)) ?> <span class="muted">(<?= number_format(hours_decimal($grandSecs), 2) ?>)</span></td>
+                <td data-label="Rate" class="num"></td>
+                <td data-label="Wages" class="num"><?= e(money($grandWage)) ?></td>
             </tr>
         <?php endif; ?>
         </tbody>
@@ -148,9 +148,9 @@ flash_render();
         uasort($perBrand, function ($a, $b) { return strcasecmp($a['name'], $b['name']); });
         foreach ($perBrand as $b): ?>
             <tr>
-                <td><?= e($b['name']) ?></td>
-                <td class="num"><?= e(fmt_duration($b['secs'])) ?></td>
-                <td class="num"><?= e(money(round($b['wage'], 2))) ?></td>
+                <td data-label="Brand"><?= e($b['name']) ?></td>
+                <td data-label="Hours" class="num"><?= e(fmt_duration($b['secs'])) ?></td>
+                <td data-label="Labour cost" class="num"><?= e(money(round($b['wage'], 2))) ?></td>
             </tr>
         <?php endforeach; ?>
         </tbody>

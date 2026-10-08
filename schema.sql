@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS staff (
   id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name            VARCHAR(100) NOT NULL,
   pin_hash        VARCHAR(255) NOT NULL,
+  pin_enc         VARCHAR(255) DEFAULT NULL,   -- recoverable copy so an admin can look a PIN up
   hourly_rate     DECIMAL(8,2) NOT NULL DEFAULT 0.00,
   photo           VARCHAR(255) DEFAULT NULL,
   is_active       TINYINT(1)   NOT NULL DEFAULT 1,

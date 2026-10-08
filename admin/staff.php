@@ -19,6 +19,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    if ($action === 'resetpin') {
+        $id = (int) ($_POST['id'] ?? 0);
+        $new = pin_random();
+        $q = db()->prepare('UPDATE staff SET pin_hash = ?, pin_enc = ?, failed_attempts = 0, locked_until = NULL WHERE id = ?');
+        $q->execute([password_hash($new, PASSWORD_DEFAULT), pin_encrypt($new), $id]);
+        $nm = db()->prepare('SELECT name FROM staff WHERE id = ?');
+        $nm->execute([$id]);
+        flash_set('New PIN for ' . ($nm->fetchColumn() ?: 'that person') . ': ' . $new . ' — write it down now.');
+        header('Location: staff.php');
+        exit;
+    }
+
     if ($action === 'save') {
         $id     = (int) ($_POST['id'] ?? 0);
         $name   = trim($_POST['name'] ?? '');
@@ -71,8 +83,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$errors) {
             $pdo = db();
             if ($id === 0) {
-                $stmt = $pdo->prepare('INSERT INTO staff (name, pin_hash, hourly_rate, photo, is_active, created_at) VALUES (?,?,?,?,?,?)');
-                $stmt->execute([$name, password_hash($pin, PASSWORD_DEFAULT), $rate, $photoName, $active, now_utc()]);
+                $stmt = $pdo->prepare('INSERT INTO staff (name, pin_hash, pin_enc, hourly_rate, photo, is_active, created_at) VALUES (?,?,?,?,?,?,?)');
+                $stmt->execute([$name, password_hash($pin, PASSWORD_DEFAULT), pin_encrypt($pin), $rate, $photoName, $active, now_utc()]);
                 $id = (int) $pdo->lastInsertId();
             } else {
                 // fetch old photo if we're replacing it
@@ -82,8 +94,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $oldPhoto = $old->fetchColumn();
                 }
                 if ($pin !== '') {
-                    $stmt = $pdo->prepare('UPDATE staff SET name=?, pin_hash=?, hourly_rate=?, is_active=? WHERE id=?');
-                    $stmt->execute([$name, password_hash($pin, PASSWORD_DEFAULT), $rate, $active, $id]);
+                    $stmt = $pdo->prepare('UPDATE staff SET name=?, pin_hash=?, pin_enc=?, hourly_rate=?, is_active=? WHERE id=?');
+                    $stmt->execute([$name, password_hash($pin, PASSWORD_DEFAULT), pin_encrypt($pin), $rate, $active, $id]);
                 } else {
                     $stmt = $pdo->prepare('UPDATE staff SET name=?, hourly_rate=?, is_active=? WHERE id=?');
                     $stmt->execute([$name, $rate, $active, $id]);
@@ -120,7 +132,10 @@ $editId   = (int) ($_GET['edit'] ?? 0);
 $allRoles  = db()->query('SELECT id, name, is_active FROM roles ORDER BY name')->fetchAll();
 $allBrands = db()->query('SELECT id, name, is_active FROM brands ORDER BY name')->fetchAll();
 
-admin_header('Staff', 'staff.php');
+$hasPinCol = false;
+try { db()->query('SELECT pin_enc FROM staff LIMIT 1'); $hasPinCol = true; } catch (Throwable $e) { $hasPinCol = false; }
+
+admin_header('Staff', 'staff.php', 'People, PINs, pay rates, brands and roles');
 flash_render();
 
 if ($errors) {
@@ -224,31 +239,50 @@ if ($showForm):
     <div class="panel">
         <div class="panel-head"><h2>Staff</h2><a class="btn" href="staff.php?new=1">Add staff</a></div>
         <div class="table-wrap"><table class="grid">
-            <thead><tr><th></th><th>Name</th><th>Brands</th><th>Roles</th><th class="num">Rate</th><th>State</th><th></th></tr></thead>
+            <thead><tr><th></th><th>Name</th><th>PIN</th><th>Brands</th><th>Roles</th><th class="num">Rate</th><th>State</th><th></th></tr></thead>
             <tbody>
             <?php if (!$staff): ?>
-                <tr class="empty-row"><td colspan="7">No staff yet. Add your first person to see them on the kiosk.</td></tr>
+                <tr class="empty-row"><td colspan="8">No staff yet. Add your first person to see them on the kiosk.</td></tr>
             <?php endif; ?>
             <?php foreach ($staff as $s):
                 $id = (int) $s['id'];
                 $on = (int) $s['open_count'] > 0;
             ?>
                 <tr style="<?= $s['is_active'] ? '' : 'opacity:.55' ?>">
-                    <td>
+                    <td data-label="">
                         <?php if (!empty($s['photo'])): ?>
                             <img class="avatar" src="../uploads/<?= e($s['photo']) ?>" alt="">
                         <?php else: ?>
                             <span class="avatar"><?= e(initials_admin($s['name'])) ?></span>
                         <?php endif; ?>
                     </td>
-                    <td><?= e($s['name']) ?><?= $s['is_active'] ? '' : ' <span class="badge off">inactive</span>' ?></td>
-                    <td><?php foreach (($brandMap[$id] ?? []) as $n) echo '<span class="tag">' . e($n) . '</span>'; ?></td>
-                    <td><?php foreach (($roleMap[$id] ?? []) as $n) echo '<span class="tag">' . e($n) . '</span>'; ?></td>
-                    <td class="num"><?= e(money((float) $s['hourly_rate'])) ?></td>
-                    <td><?= $on ? '<span class="badge on">on shift</span>' : '<span class="badge off">off</span>' ?></td>
-                    <td>
+                    <td data-label="Name"><?= e($s['name']) ?><?= $s['is_active'] ? '' : ' <span class="badge off">inactive</span>' ?></td>
+                    <td data-label="PIN">
+                        <?php $shown = $hasPinCol ? pin_decrypt($s['pin_enc'] ?? null) : null; ?>
+                        <?php if ($shown !== null): ?>
+                            <span class="pinbox">
+                                <span class="mono dots">••••</span>
+                                <span class="mono val" hidden><?= e($shown) ?></span>
+                                <button type="button" class="btn-link" onclick="var b=this.closest('.pinbox');var d=b.querySelector('.dots'),v=b.querySelector('.val');var show=d.hidden;d.hidden=!show;v.hidden=show;this.textContent=show?'Show':'Hide';">Show</button>
+                            </span>
+                        <?php else: ?>
+                            <span class="muted mono">••••</span>
+                            <span class="hint" style="margin:0 0 0 6px;display:inline">reset to see</span>
+                        <?php endif; ?>
+                    </td>
+                    <td data-label="Brands"><?php foreach (($brandMap[$id] ?? []) as $n) echo '<span class="tag">' . e($n) . '</span>'; ?></td>
+                    <td data-label="Roles"><?php foreach (($roleMap[$id] ?? []) as $n) echo '<span class="tag">' . e($n) . '</span>'; ?></td>
+                    <td data-label="Rate" class="num"><?= e(money((float) $s['hourly_rate'])) ?></td>
+                    <td data-label="State"><?= $on ? '<span class="badge on">on shift</span>' : '<span class="badge off">off</span>' ?></td>
+                    <td data-label="">
                         <div class="actions">
                             <a class="btn-link" href="staff.php?edit=<?= $id ?>">Edit</a>
+                            <form class="inline-form" method="post" onsubmit="return confirm('Give this person a new random PIN? The old one stops working immediately.');">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="action" value="resetpin">
+                                <input type="hidden" name="id" value="<?= $id ?>">
+                                <button class="btn-link" type="submit">Reset PIN</button>
+                            </form>
                             <form class="inline-form" method="post" onsubmit="return confirm('<?= $s['is_active'] ? 'Deactivate' : 'Reactivate' ?> this person?');">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="action" value="toggle">

@@ -65,7 +65,7 @@ if ($type === 'brand') {
     }
 }
 
-admin_header('Brands & roles', 'lists.php');
+admin_header('Brands & roles', 'lists.php', 'The kitchens you run and the jobs people do');
 flash_render();
 ?>
 
@@ -101,7 +101,7 @@ flash_render();
                 : 'Delete this role? It will be removed from anyone who has it.';
         ?>
             <tr style="<?= $it['is_active'] ? '' : 'opacity:.6' ?>">
-                <td>
+                <td data-label="">
                     <form method="post" class="actions" style="gap:6px">
                         <?= csrf_field() ?>
                         <input type="hidden" name="type" value="<?= e($type) ?>">
@@ -111,9 +111,9 @@ flash_render();
                         <button class="btn-link" type="submit">Save</button>
                     </form>
                 </td>
-                <td><?= $it['is_active'] ? '<span class="badge on">active</span>' : '<span class="badge off">inactive</span>' ?></td>
-                <td class="num"><?= $u ?></td>
-                <td>
+                <td data-label="Status"><?= $it['is_active'] ? '<span class="badge on">active</span>' : '<span class="badge off">inactive</span>' ?></td>
+                <td data-label="Used by" class="num"><?= $u ?></td>
+                <td data-label="">
                     <div class="actions">
                         <form class="inline-form" method="post">
                             <?= csrf_field() ?>

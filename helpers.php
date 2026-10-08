@@ -208,48 +208,102 @@ function name_initials(string $s): string
     return strtoupper(mb_substr($s, 0, 2));
 }
 
-function admin_header(string $title, string $active = ''): void
+/** Line icons for the admin menu (24x24, stroke = currentColor). */
+function admin_icon(string $name): string
 {
-    $nav = [
-        'index.php'      => 'Dashboard',
-        'timesheets.php' => 'Timesheets',
-        'import.php'     => 'Import',
-        'staff.php'      => 'Staff',
-        'schedules.php'  => 'Schedules',
-        'lists.php'      => 'Brands & roles',
-        'kiosks.php'     => 'Kiosks',
-        'reports.php'    => 'Reports',
-        'admins.php'     => 'Admins',
-        'update.php'     => 'Update',
+    $p = [
+        'index'      => '<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>',
+        'timesheets' => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 1.9"/>',
+        'import'     => '<path d="M12 3v11"/><path d="M8 10.5 12 14.5l4-4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/>',
+        'staff'      => '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.8c1.7.8 2.8 2.5 3 5.2"/>',
+        'schedules'  => '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4M8 13h3M8 17h8"/>',
+        'lists'      => '<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
+        'kiosks'     => '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
+        'reports'    => '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+        'admins'     => '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c.9-3.7 3.7-5.6 7-5.6s6.1 1.9 7 5.6"/>',
+        'update'     => '<path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6M12 8v5l3 2"/>',
+        'menu'       => '<path d="M4 6h16M4 12h16M4 18h16"/>',
+        'out'        => '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
+        'kiosk-open' => '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
+        'exceptions' => '<path d="M12 3 2.5 20h19L12 3z"/><path d="M12 10v4.5M12 17.5v.01"/>',
+        'planner'    => '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/><path d="M7 13h6M10 17h7"/>',
+        'arrow'      => '<path d="M5 12h14M13 6l6 6-6 6"/>',
+        'chev'       => '<path d="m9 6 6 6-6 6"/>',
+        'chev-l'     => '<path d="m15 6-6 6 6 6"/>',
+        'check'      => '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
     ];
+    return '<svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($p[$name] ?? '') . '</svg>';
+}
+
+function admin_head(string $title): void
+{
     echo '<!doctype html><html lang="en"><head><meta charset="utf-8">';
-    echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
+    echo '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">';
+    echo '<meta name="robots" content="noindex"><meta name="theme-color" content="#01216C">';
     echo '<title>' . e($title) . ' · ' . e(APP_NAME) . '</title>';
     echo '<link rel="preconnect" href="https://fonts.googleapis.com">';
     echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
     echo '<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">';
+    echo '<link rel="icon" href="../assets/logo-mark.svg">';
     echo '<link rel="stylesheet" href="../assets/style.css' . asset_v('style.css') . '"></head>';
-    echo '<body class="admin">';
-    echo '<header class="topbar">';
-    echo '<a class="brand" href="index.php">'
-       . '<img class="brand-logo" src="../assets/logo-primary.svg' . asset_v('logo-primary.svg') . '" alt="' . e(APP_NAME) . '">'
-       . '</a>';
-    echo '<nav class="mainnav">';
-    foreach ($nav as $file => $label) {
-        $cls = ($file === $active) ? ' class="on"' : '';
-        echo '<a href="' . e($file) . '"' . $cls . '>' . e($label) . '</a>';
+}
+
+function admin_header(string $title, string $active = '', string $subtitle = ''): void
+{
+    $groups = [
+        'Daily' => [
+            'index'      => ['Home', 'index.php'],
+            'exceptions' => ['Exceptions', 'exceptions.php'],
+            'timesheets' => ['Timesheets', 'timesheets.php'],
+            'import'     => ['Import timecards', 'import.php'],
+        ],
+        'People' => [
+            'planner'   => ['Schedule planner', 'planner.php'],
+            'schedules' => ['Rota', 'schedules.php'],
+            'staff'     => ['Staff', 'staff.php'],
+        ],
+        'Setup' => [
+            'lists'  => ['Brands & roles', 'lists.php'],
+            'kiosks' => ['Kiosks', 'kiosks.php'],
+            'admins' => ['Admins', 'admins.php'],
+        ],
+        'Tools' => [
+            'reports' => ['Reports', 'reports.php'],
+            'update'  => ['Updates', 'update.php'],
+        ],
+    ];
+
+    admin_head($title);
+    echo '<body class="admin has-side">';
+    echo '<input type="checkbox" id="navtog" class="navtog-input">';
+    echo '<aside class="side">';
+    echo '<a class="side-brand" href="index.php"><img src="../assets/logo-light.svg' . asset_v('logo-light.svg') . '" alt="' . e(APP_NAME) . '"></a>';
+    echo '<nav class="sidenav">';
+    foreach ($groups as $label => $items) {
+        echo '<div class="grp">' . e($label) . '</div>';
+        foreach ($items as $key => [$text, $href]) {
+            $on = ($href === $active) ? ' class="on" aria-current="page"' : '';
+            echo '<a href="' . e($href) . '"' . $on . '>' . admin_icon($key) . '<span>' . e($text) . '</span></a>';
+        }
     }
-    echo '</nav><div class="topbar-right">';
-    echo '<a class="kiosk-link" href="../kiosk/index.php" target="_blank" rel="noopener">Open kiosk</a>';
+    echo '</nav>';
     $who = current_admin_name();
-    echo '<span class="whochip"><span class="avatar-sm">' . e(name_initials($who)) . '</span><span class="who">' . e($who) . '</span></span>';
-    echo '<a class="ghost" href="logout.php">Log out</a>';
-    echo '</div></header><main class="wrap">';
-    echo '<h1 class="page-title">' . e($title) . '</h1>';
+    echo '<div class="side-foot">';
+    echo '<a class="side-kiosk" href="../kiosk/index.php" target="_blank" rel="noopener">' . admin_icon('kiosk-open') . '<span>Open kiosk</span></a>';
+    echo '<div class="who"><span class="av">' . e(name_initials($who)) . '</span>'
+       . '<div><b>' . e($who) . '</b><a href="logout.php">' . admin_icon('out') . ' Sign out</a></div></div>';
+    echo '</div></aside>';
+    echo '<label class="scrim" for="navtog"></label>';
+    echo '<main class="main"><header class="topbar">';
+    echo '<label class="burger" for="navtog" aria-label="Menu">' . admin_icon('menu') . '</label>';
+    echo '<div class="topbar-title"><h1>' . e($title) . '</h1>'
+       . ($subtitle !== '' ? '<p class="sub">' . e($subtitle) . '</p>' : '') . '</div>';
+    echo '</header>';
 }
 
 function admin_footer(): void
 {
+    echo '<footer class="foot">' . e(APP_NAME) . ' · Free and open source · <a href="https://mustrhq.app" target="_blank" rel="noopener">mustrhq.app</a></footer>';
     echo '</main></body></html>';
 }
 
@@ -265,6 +319,69 @@ function flash_render(): void
         unset($_SESSION['flash']);
         echo '<div class="flash ' . e($f['kind']) . '">' . e($f['msg']) . '</div>';
     }
+}
+
+/* --------------------------------------------------------- PIN recovery */
+
+/**
+ * Key for the recoverable PIN copy. It lives in config.php (never in the
+ * database), so a stolen database alone does not reveal anyone's PIN.
+ */
+function pin_key(): string
+{
+    $k = (defined('APP_KEY') && APP_KEY !== '') ? APP_KEY : (DB_PASS . '|' . DB_NAME . '|' . SESSION_NAME);
+    return hash('sha256', 'mustrhq-pin|' . $k, true);
+}
+
+function pin_crypto_ready(): bool
+{
+    return function_exists('openssl_encrypt') && function_exists('openssl_decrypt');
+}
+
+/** Encrypt a PIN for storage (AES-256-CBC, random IV). Null if unavailable. */
+function pin_encrypt(string $pin): ?string
+{
+    if (!pin_crypto_ready()) return null;
+    $iv = random_bytes(16);
+    $c = openssl_encrypt($pin, 'aes-256-cbc', pin_key(), OPENSSL_RAW_DATA, $iv);
+    return $c === false ? null : base64_encode($iv . $c);
+}
+
+/** Read a stored PIN back, or null if missing/unreadable. */
+function pin_decrypt(?string $blob): ?string
+{
+    if ($blob === null || $blob === '' || !pin_crypto_ready()) return null;
+    $raw = base64_decode($blob, true);
+    if ($raw === false || strlen($raw) <= 16) return null;
+    $p = openssl_decrypt(substr($raw, 16), 'aes-256-cbc', pin_key(), OPENSSL_RAW_DATA, substr($raw, 0, 16));
+    return ($p === false || $p === '') ? null : $p;
+}
+
+/** A fresh random 4-digit PIN. */
+function pin_random(): string
+{
+    return str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+}
+
+/**
+ * Add columns newer versions need to tables that already exist.
+ * CREATE TABLE IF NOT EXISTS can't do this, so upgrade.php calls it.
+ */
+function ensure_columns(PDO $pdo): int
+{
+    $wanted = [
+        'staff' => ['pin_enc' => "ALTER TABLE staff ADD COLUMN pin_enc VARCHAR(255) DEFAULT NULL"],
+    ];
+    $added = 0;
+    foreach ($wanted as $table => $cols) {
+        try { $pdo->query("SELECT 1 FROM `$table` LIMIT 1"); } catch (Throwable $e) { continue; }
+        foreach ($cols as $col => $sql) {
+            $q = $pdo->prepare("SHOW COLUMNS FROM `$table` LIKE ?");
+            $q->execute([$col]);
+            if (!$q->fetch()) { $pdo->exec($sql); $added++; }
+        }
+    }
+    return $added;
 }
 
 /* ------------------------------------------------------------- kiosk gate */

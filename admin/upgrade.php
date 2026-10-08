@@ -9,7 +9,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (($_POST['action'] ?? '') === 'upgrade') {
         try {
             $n = apply_schema_file(db(), __DIR__ . '/../schema.sql');
-            flash_set('Database is up to date (' . $n . ' statement' . ($n === 1 ? '' : 's') . ' applied).');
+            $c = ensure_columns(db());
+            $msg = 'Database is up to date (' . $n . ' statement' . ($n === 1 ? '' : 's') . ' applied';
+            $msg .= $c ? (', ' . $c . ' column' . ($c === 1 ? '' : 's') . ' added).') : ').';
+            flash_set($msg);
         } catch (Throwable $e) {
             flash_set('Update failed: ' . $e->getMessage(), 'err');
         }
@@ -24,7 +27,7 @@ try {
     foreach (db()->query('SHOW TABLES')->fetchAll(PDO::FETCH_NUM) as $r) { $tables[] = $r[0]; }
 } catch (Throwable $e) { /* ignore */ }
 
-admin_header('Database update', 'index.php');
+admin_header('Database update', 'index.php', 'Add tables that newer versions need');
 flash_render();
 ?>
 

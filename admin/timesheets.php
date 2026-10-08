@@ -86,6 +86,14 @@ $entries = $stmt->fetchAll();
 /* prefill for edit / add */
 $editId = (int) ($_GET['edit'] ?? 0);
 $form = ['id' => 0, 'staff_id' => $staffFilter, 'brand_id' => '', 'clock_in' => '', 'clock_out' => '', 'note' => ''];
+// prefill a new entry from a link (e.g. fixing a no-show from Exceptions)
+if (!$editId && isset($_GET['add_in'])) {
+    $ai = (string) $_GET['add_in'];
+    $ao = (string) ($_GET['add_out'] ?? '');
+    if (preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', $ai)) $form['clock_in'] = $ai;
+    if (preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', $ao)) $form['clock_out'] = $ao;
+    $form['note'] = 'added from exceptions';
+}
 if ($editId) {
     $eq = db()->prepare('SELECT * FROM time_entries WHERE id = ?');
     $eq->execute([$editId]);
@@ -111,12 +119,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $errors) {
     ];
 }
 
-admin_header('Timesheets', 'timesheets.php');
+admin_header('Timesheets', 'timesheets.php', 'Every clock in and out, editable');
 flash_render();
 if ($errors) echo '<div class="flash err">' . implode('<br>', array_map('e', $errors)) . '</div>';
 ?>
 
-<div class="panel">
+<div class="panel" id="entry-form">
     <div class="panel-head"><h2><?= $form['id'] ? 'Edit entry' : 'Add entry manually' ?></h2>
         <?php if ($form['id']): ?><a class="btn ghost small" href="timesheets.php">Cancel edit</a><?php endif; ?>
     </div>
@@ -188,13 +196,13 @@ if ($errors) echo '<div class="flash err">' . implode('<br>', array_map('e', $er
             $secs = duration_seconds($en['clock_in'], $en['clock_out']);
         ?>
             <tr>
-                <td class="mono"><?= e(fmt_date_local($en['clock_in'])) ?></td>
-                <td><?= e($en['staff_name']) ?><?php if ($en['note']): ?> <span class="muted" title="<?= e($en['note']) ?>">✎</span><?php endif; ?></td>
-                <td><?= $en['brand_name'] ? e($en['brand_name']) : '<span class="muted">—</span>' ?></td>
-                <td class="mono"><?= e(fmt_time_local($en['clock_in'])) ?></td>
-                <td class="mono"><?= $open ? '<span class="badge on">on shift</span>' : e(fmt_time_local($en['clock_out'])) ?></td>
-                <td class="num"><?= $open ? '<span class="muted">' . e(fmt_duration($secs)) . '</span>' : e(fmt_duration($secs)) ?></td>
-                <td>
+                <td data-label="Date" class="mono"><?= e(fmt_date_local($en['clock_in'])) ?></td>
+                <td data-label="Staff"><?= e($en['staff_name']) ?><?php if ($en['note']): ?> <span class="muted" title="<?= e($en['note']) ?>">✎</span><?php endif; ?></td>
+                <td data-label="Brand"><?= $en['brand_name'] ? e($en['brand_name']) : '<span class="muted">—</span>' ?></td>
+                <td data-label="In" class="mono"><?= e(fmt_time_local($en['clock_in'])) ?></td>
+                <td data-label="Out" class="mono"><?= $open ? '<span class="badge on">on shift</span>' : e(fmt_time_local($en['clock_out'])) ?></td>
+                <td data-label="Duration" class="num"><?= $open ? '<span class="muted">' . e(fmt_duration($secs)) . '</span>' : e(fmt_duration($secs)) ?></td>
+                <td data-label="">
                     <div class="actions">
                         <a class="btn-link" href="timesheets.php?edit=<?= (int) $en['id'] ?>">Edit</a>
                         <form class="inline-form" method="post" onsubmit="return confirm('Delete this entry?');">

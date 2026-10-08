@@ -175,7 +175,7 @@ $counts = ['ok' => 0, 'warn' => 0, 'skip' => 0, 'error' => 0];
 foreach ($rows ?? [] as $r) { $counts[$r['status']] = ($counts[$r['status']] ?? 0) + 1; }
 $importable = $counts['ok'] + $counts['warn'];
 
-admin_header('Import timecards', 'import.php');
+admin_header('Import timecards', 'import.php', 'Bring in past days from a spreadsheet');
 flash_render();
 if ($error) echo '<div class="flash err">' . e($error) . '</div>';
 ?>
@@ -227,12 +227,12 @@ if ($error) echo '<div class="flash err">' . e($error) . '</div>';
             $label = $r['status'] === 'error' ? 'error' : ($r['status'] === 'warn' ? 'warning' : ($r['status'] === 'skip' ? 'skipped' : 'ready'));
         ?>
             <tr>
-                <td class="mono"><?= (int) $r['line'] ?></td>
-                <td><?= e($r['staff']) ?></td>
-                <td class="mono"><?= $r['in_utc'] ? e(fmt_dt_local($r['in_utc'], 'j M Y, H:i')) : e($r['in']) ?></td>
-                <td class="mono"><?= $r['out_utc'] ? e(fmt_dt_local($r['out_utc'], 'j M Y, H:i')) : ($r['out'] !== '' ? e($r['out']) : '<span class="muted">still open</span>') ?></td>
-                <td><?= $r['brand'] !== '' ? e($r['brand']) : '<span class="muted">—</span>' ?></td>
-                <td><span class="badge <?= $cls ?>"><?= e($label) ?></span><?php if ($r['msg']): ?> <span class="muted" style="font-size:13px"><?= e($r['msg']) ?></span><?php endif; ?></td>
+                <td data-label="Line" class="mono"><?= (int) $r['line'] ?></td>
+                <td data-label="Staff"><?= e($r['staff']) ?></td>
+                <td data-label="Clock in" class="mono"><?= $r['in_utc'] ? e(fmt_dt_local($r['in_utc'], 'j M Y, H:i')) : e($r['in']) ?></td>
+                <td data-label="Clock out" class="mono"><?= $r['out_utc'] ? e(fmt_dt_local($r['out_utc'], 'j M Y, H:i')) : ($r['out'] !== '' ? e($r['out']) : '<span class="muted">still open</span>') ?></td>
+                <td data-label="Brand"><?= $r['brand'] !== '' ? e($r['brand']) : '<span class="muted">—</span>' ?></td>
+                <td data-label="Status"><span class="badge <?= $cls ?>"><?= e($label) ?></span><?php if ($r['msg']): ?> <span class="muted" style="font-size:13px"><?= e($r['msg']) ?></span><?php endif; ?></td>
             </tr>
         <?php endforeach; ?>
         </tbody>

@@ -33,3 +33,8 @@ define('KIOSK_KEY', '');
 
 // ---- Session cookie name ----
 define('SESSION_NAME', 'kclock');
+
+// ---- Key used to store the readable copy of staff PINs ----
+// Any long random string. Keep it secret and don't change it once set,
+// or previously stored PINs can no longer be read back.
+define('APP_KEY', '');
